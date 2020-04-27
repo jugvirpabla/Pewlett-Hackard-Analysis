@@ -36,8 +36,8 @@ SELECT * FROM recent_titles;
 SELECT e.emp_no,
 e.first_name,
 e.last_name,
-ti.title,
 e.birth_date,
+ti.title,
 e.hire_date,
 ti.to_date
 INTO mentor_eligibility
