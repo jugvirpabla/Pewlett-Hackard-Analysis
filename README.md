@@ -18,4 +18,4 @@ Sample Code Snippet:
 
 It was determined that thousands of employees are Pewlett-Hackard will be retiring soon, and many of them could continue to stay with the company and be mentors to the new incoming employees. This a great starting point for management to figure how they will transition the retirees to different roles, or leave the company. There could be more analysis done to find out when the exact months the employees could retire to have potential new employees hired and into training by that time.
 
-All of the data collected for Pewlett Hackard is in the date folder under recent_titles.csv and mentor_eligibility.csv, respectively. 
+All of the data collected for Pewlett Hackard is in the data folder under recent_titles.csv and mentor_eligibility.csv, respectively. 
