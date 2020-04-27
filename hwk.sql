@@ -1,3 +1,58 @@
+-- Creating tables for PH-EmployeeDB
+CREATE TABLE departments (
+     dept_no VARCHAR(4) NOT NULL,
+     dept_name VARCHAR(40) NOT NULL,
+     PRIMARY KEY (dept_no),
+     UNIQUE (dept_name)
+);
+
+CREATE TABLE employees (
+	 emp_no INT NOT NULL,
+     birth_date DATE NOT NULL,
+     first_name VARCHAR NOT NULL,
+     last_name VARCHAR NOT NULL,
+     gender VARCHAR NOT NULL,
+     hire_date DATE NOT NULL,
+     PRIMARY KEY (emp_no)
+);
+
+CREATE TABLE dept_manager (
+	dept_no VARCHAR(4) NOT NULL,
+	emp_no INT NOT NULL,
+	from_date DATE NOT NULL,
+	to_date DATE NOT NULL,
+    FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+    FOREIGN KEY (dept_no) REFERENCES departments (dept_no),
+    PRIMARY KEY (emp_no, dept_no)
+);
+
+CREATE TABLE salaries (
+    emp_no INT NOT NULL,
+    salary INT NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+    PRIMARY KEY (emp_no)
+);
+
+CREATE TABLE dept_emp (
+    emp_no INT NOT NULL,
+	dept_no VARCHAR NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+    FOREIGN KEY (dept_no) REFERENCES departments (dept_no),
+    PRIMARY KEY (emp_no, dept_no)
+);
+
+CREATE TABLE titles (
+    emp_no INT NOT NULL,
+    title varchar NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    FOREIGN KEY (emp_no) REFERENCES employees (emp_no)
+);
+
 SELECT * FROM dept_manager;
 
 SELECT first_name, last_name
@@ -169,3 +224,60 @@ SELECT *
 INTO teams_info
 FROM dept_retirement_info
 WHERE dept_name IN ('Sales', 'Development');
+
+--Challenge
+
+--Number of Retiring Employees by Title
+SELECT ri.emp_no,
+ri.first_name,
+ri.last_name,
+ti.title,
+ti.from_date,
+s.salary
+INTO titles_retiring
+FROM retirement_info as ri
+RIGHT JOIN titles AS ti
+ON (ri.emp_no = ti.emp_no)
+INNER JOIN salaries AS s
+ON (ri.emp_no = s.emp_no);
+
+SELECT * FROM titles_retiring;
+
+--Only the Most Recent Titles
+SELECT titles_retiring.emp_no,
+  titles_retiring.first_name,
+  titles_retiring.last_name,
+  string_agg(titles_retiring.title, ' / ') AS titles,
+  titles_retiring.from_date,
+  titles_retiring.salary
+INTO recent_titles
+FROM titles_retiring
+GROUP BY titles_retiring.emp_no,
+  titles_retiring.first_name,
+  titles_retiring.last_name,
+  titles_retiring.from_date,
+  titles_retiring.salary
+ORDER BY from_date DESC;
+
+SELECT * FROM recent_titles;
+
+-- Partition the data to show only most recent title per employee
+SELECT titles_retiring.first_name,
+  titles_retiring.last_name,
+  titles_retiring.emp_no,
+  titles_retiring.title,
+  titles_retiring.from_date,
+  titles_retiring.salary
+INTO recent_titles_dup
+FROM titles_retiring,
+ (SELECT titles_retiring.first_name,
+ 	titles_retiring.last_name,
+ 	titles_retiring.emp_no,
+  	titles_retiring.title,
+  	titles_retiring.from_date,
+  	titles_retiring.salary, ROW_NUMBER() OVER
+ (PARTITION BY (emp_no)
+  ORDER BY titles_retiring.from_date DESC) rn
+  FROM titles_retiring
+ ) tmp WHERE rn = 1
+ORDER BY emp_no;
